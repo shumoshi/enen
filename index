@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炎炎ノ消防隊 パチンコシミュレーター</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            animation: backgroundShift 10s ease-in-out infinite alternate;
+        }
+
+```
+    @keyframes backgroundShift {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 100% 50%; }
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: rgba(0,0,0,0.4);
+        border-radius: 20px;
+        padding: 30px;
+        border: 3px solid #ff6b35;
+        box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    h1 {
+        text-align: center;
+        color: #ff6b35;
+        font-size: 2.8em;
+        margin-bottom: 30px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+        background: linear-gradient(45deg, #ff6b35, #ff8c42, #ffa726);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .game-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .panel {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .panel:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .status-panel {
+        border-color: #ff6b35;
+        background: linear-gradient(145deg, rgba(255, 107, 53, 0.15), rgba(255, 107, 53, 0.05));
+    }
+
+    .results-panel {
+        border-color: #0096ff;
+        background: linear-gradient(145deg, rgba(0, 150, 255, 0.15), rgba(0, 150, 255, 0.05));
+    }
+
+    .counter-panel {
+        border-color: #00ff88;
+        background: linear-gradient(145deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
+    }
+
+    .panel h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 1.3em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 12px 0;
+        padding: 12px 15px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 8px;
+        border-left: 4px solid rgba(255, 107, 53, 0.6);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(255,255,255,0.12);
+        border-left-color: #ff6b35;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .counter-item {
+        text-align: center;
+        padding: 15px;
+        margin: 10px 0;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 10px;
+        border: 2px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .counter-value {
+        font-size: 2.2em;
+        font-weight: bold;
+        color: #00ff88;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .counter-label {
+        font-size: 0.9em;
+        color: #ccc;
+        margin-top: 5px;
+    }
+
+    .mode-indicator {
+        text-align: center;
+        font-size: 1.6em;
+        font-weight: bold;
+        padding: 18px;
+        border-radius: 12px;
+        margin: 15px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        transition: all 0.3s ease;
+    }
+
+    .mode-indicator:hover {
+        transform: scale(1.05);
+    }
+
+    .mode-normal { 
+        background: linear-gradient(45deg, #666, #999, #bbb); 
+        animation: pulse 2s infinite;
+    }
+    .mode-charge { 
+        background: linear-gradient(45deg, #ff6b35, #ff8c42, #ffa726); 
+        animation: fireGlow 1.5s infinite;
+    }
+    .mode-breath { 
+        background: linear-gradient(45deg, #ff0000, #ff6b35, #ff8c42); 
+        animation: breathe 1s infinite;
+    }
+    .mode-rush { 
+        background: linear-gradient(45deg, #0096ff, #00d4ff, #00ffff); 
+        animation: rushPulse 0.8s infinite;
+    }
+    .mode-extra { 
+        background: linear-gradient(45deg, #ffd700, #ffed4e, #fff176); 
+        color: #000; 
+        animation: goldGlitter 1.2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+    }
+
+    @keyframes fireGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.5); }
+        50% { box-shadow: 0 0 30px rgba(255, 107, 53, 0.8); }
+    }
+
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    @keyframes rushPulse {
+        0%, 100% { box-shadow: 0 0 15px rgba(0, 150, 255, 0.5); }
+        50% { box-shadow: 0 0 25px rgba(0, 150, 255, 0.8); }
+    }
+
+    @keyframes goldGlitter {
+        0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+        50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); }
+    }
+
+    .controls {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    button {
+        background: linear-gradient(45deg, #ff6b35, #ff8c42);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 0 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+    }
+
+    button:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .log {
+        background: rgba(0,0,0,0.5);
+        border-radius: 10px;
+        padding: 15px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.9em;
+        border: 1px solid #333;
+    }
+
+    .log-entry {
+        margin: 5px 0;
+        padding: 5px;
+        border-radius: 3px;
+    }
+
+    .log-normal { background: rgba(255,255,255,0.1); }
+    .log-hit { background: rgba(255, 107, 53, 0.3); }
+    .log-rush { background: rgba(0, 150, 255, 0.3); }
+    .log-extra { background: rgba(255, 215, 0, 0.3); color: #000; }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .auto-controls {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .auto-controls label {
+        margin: 0 15px;
+    }
+
+    .rush-mode-display {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 10px 0;
+    }
+
+    .rush-mode-item {
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+    }
+
+    .white-mode { background: rgba(255,255,255,0.2); }
+    .green-mode { background: rgba(0,255,0,0.2); }
+    .blue-mode { background: rgba(0,150,255,0.2); }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 炎炎ノ消防隊 パチンコシミュレーター 🔥</h1>
+
+```
+    <div class="game-area">
+        <div class="status-panel">
+            <h3>📊 現在の状況</h3>
+            <div class="mode-indicator" id="currentMode">通常モード</div>
+            
+            <div class="stat-item">
+                <span>総回転数:</span>
+                <span id="totalSpins">0</span>
+            </div>
+            <div class="stat-item">
+                <span>総出玉:</span>
+                <span id="totalBalls">0発</span>
+            </div>
+            <div class="stat-item">
+                <span>当たり回数:</span>
+                <span id="hitCount">0回</span>
+            </div>
+            <div class="stat-item">
+                <span>ラッシュ突入回数:</span>
+                <span id="rushCount">0回</span>
+            </div>
+
+            <div class="rush-mode-display" id="rushModeDisplay" style="display: none;">
+                <div class="rush-mode-item white-mode">
+                    <div>白モード</div>
+                    <div>55%</div>
+                </div>
+                <div class="rush-mode-item green-mode">
+                    <div>緑モード</div>
+                    <div>25%</div>
+                </div>
+                <div class="rush-mode-item blue-mode">
+                    <div>青モード</div>
+                    <div>20%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <h3>📈 確率・収支</h3>
+            <div class="stat-item">
+                <span>図柄確率:</span>
+                <span>1/416.5</span>
+            </div>
+            <div class="stat-item">
+                <span>炎炎チャージ:</span>
+                <span>1/2186</span>
+            </div>
+            <div class="stat-item">
+                <span>ラッシュ中当たり:</span>
+                <span>1/2.0</span>
+            </div>
+            <div class="stat-item">
+                <span>ラッシュ突入時:</span>
+                <span>青モード確定</span>
+            </div>
+            <div class="stat-item">
+                <span>現在の収支:</span>
+                <span id="balance">0発</span>
+            </div>
+            <div class="stat-item">
+                <span>出玉率:</span>
+                <span id="payoutRate">--%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="spinOnce()" id="spinButton">1回転</button>
+        <button onclick="spin10()" id="spin10Button">10回転</button>
+        <button onclick="spin100()" id="spin100Button">100回転</button>
+        <button onclick="resetGame()">リセット</button>
+    </div>
+
+    <div class="auto-controls">
+        <label>
+            <input type="checkbox" id="autospin"> オートスピン
+        </label>
+        <label>
+            速度: <select id="autoSpeed">
+                <option value="10">超高速</option>
+                <option value="100">高速</option>
+                <option value="300" selected>中速</option>
+                <option value="500">低速</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="log" id="gameLog"></div>
+</div>
+
+<script>
+    // ゲーム状態
+    let gameState = {
+        mode: 'normal', // normal, charge, breath, rush, extra
+        totalSpins: 0,
+        currentSpins: 0, // 当たりからの回転数
+        totalBalls: 0,
+        hitCount: 0,
+        rushCount: 0,
+        rushMode: 'white', // white, green, blue
+        extraStack: 0,
+        isAutoSpin: false,
+        autoSpinInterval: null,
+        hitHistory: [] // 当たり時の回転数履歴
+    };
+
+    // 確率定数
+    const PROBABILITIES = {
+        normalHit: 1/416.5,
+        charge: 1/2186,
+        breathSuccess: 0.5,
+        chargeToBreath: 0.437,
+        rushHit: 0.5,
+        rushFall: 1/5.9,
+        smallHit: 1/5.3,
+        rushContinue: 0.73,
+        rushToNormal: 0.5208,
+        extraContinue: 0.5,
+        extraAdd: 0.5
+    };
+
+    // モード振り分け
+    const RUSH_MODE_DISTRIBUTION = {
+        white: 0.55,
+        green: 0.25,
+        blue: 0.20
+    };
+
+    // 出玉振り分け
+    const PAYOUT_DISTRIBUTION = {
+        white: { normal: 0.86, extra: 0.14 },
+        green: { normal: 0.67, extra: 0.33 },
+        blue: { normal: 0.50, extra: 0.50 }
+    };
+
+    function random() {
+        return Math.random();
+    }
+
+    function spinOnce() {
+        gameState.totalSpins++;
+        gameState.currentSpins++;
+        
+        switch(gameState.mode) {
+            case 'normal':
+                handleNormalSpin();
+                break;
+            case 'charge':
+                handleChargeSpin();
+                break;
+            case 'breath':
+                handleBreathSpin();
+                break;
+            case 'rush':
+                handleRushSpin();
+                break;
+            case 'extra':
+                handleExtraSpin();
+                break;
+        }
+        
+        updateDisplay();
+    }
+
+    function handleNormalSpin() {
+        const rand = random();
+        
+        if (rand < PROBABILITIES.normalHit) {
+            // 図柄揃い - 履歴に総回転数を記録してリセット
+            gameState.hitHistory.push({
+                type: '図柄揃い',
+                spins: gameState.totalSpins
+            });
+            gameState.totalSpins = 0;
+            gameState.currentSpins = 0;
+            gameState.hitCount++;
+            const rushRand = random();
+            
+            if (rushRand < PROBABILITIES.rushToNormal) {
+                // ラッシュ直行
+                gameState.totalBalls += 3000;
+                gameState.mode = 'rush';
+                gameState.rushCount++;
+                gameState.rushMode = selectRushMode();
+                addLog('🎊 図柄揃い！ラッシュ直行！ 3000発獲得！', 'log-rush');
+            } else {
+                // 通常当たり
+                gameState.totalBalls += 1500;
+                addLog('⭐ 図柄揃い！通常当たり 1500発獲得', 'log-hit');
+            }
+            
+            // 大当たり時はオートスピン停止
+            stopAutoSpinOnHit();
+            
+        } else if (rand < PROBABILITIES.normalHit + PROBABILITIES.charge) {
+            // 炎炎チャージ - 履歴に総回転数を記録してリセット
+            gameState.hitHistory.push({
+                type: 'チャージ',
+                spins: gameState.totalSpins
+            });
+            gameState.totalSpins = 0;
+            gameState.currentSpins = 0;
+            gameState.mode = 'charge';
+            gameState.totalBalls += 300;
+            addLog('🔥 炎炎チャージ突入！ 300発獲得', 'log-hit');
+            
+            if (random() < PROBABILITIES.chargeToBreath) {
+                gameState.mode = 'breath';
+                addLog('⚔️ 命の呼吸チャレンジ突入！', 'log-rush');
+            }
+            
+            // チャージ時もオートスピン停止
+            stopAutoSpinOnHit();
+        }
+    }
+
+    function handleChargeSpin() {
+        // チャージ状態の処理（通常は即座に終了）
+        gameState.mode = 'normal';
+    }
+
+    function handleBreathSpin() {
+        if (random() < PROBABILITIES.breathSuccess) {
+            // 成功
+            gameState.totalBalls += 1500;
+            gameState.mode = 'rush';
+            gameState.rushCount++;
+            gameState.rushMode = selectRushMode();
+            addLog('✨ 命の呼吸チャレンジ成功！ラッシュ突入！ 1500発獲得', 'log-rush');
+            
+            // ラッシュ突入時もオートスピン停止
+            stopAutoSpinOnHit();
+        } else {
+            // 失敗
+            gameState.mode = 'normal';
+            addLog('💔 命の呼吸チャレンジ失敗...', 'log-normal');
+        }
+    }
+
+    function handleRushSpin() {
+        const hitRand = random();
+        
+        if (hitRand < PROBABILITIES.rushHit) {
+            // 当たり
+            gameState.hitCount++;
+            const modeData = PAYOUT_DISTRIBUTION[gameState.rushMode];
+            const payoutRand = random();
+            
+            if (payoutRand < modeData.normal) {
+                // 通常出玉 - ラッシュ継続
+                gameState.totalBalls += 1500;
+                gameState.rushMode = selectRushModeAfterHit(); // 次回モード抽選
+                addLog(`💎 ラッシュ中当たり！(${gameState.rushMode}モード継続) 1500発獲得`, 'log-rush');
+            } else {
+                // エクストラ
+                gameState.totalBalls += 4500;
+                gameState.mode = 'extra';
+                addLog(`🌟 エクストラ突入！ 4500発獲得`, 'log-extra');
+                
+                // エクストラ突入時もオートスピン停止
+                stopAutoSpinOnHit();
+            }
+        } else {
+            // 当たらなかった場合、転落抽選
+            const fallRand = random();
+            
+            if (fallRand < 1/PROBABILITIES.rushFall) {
+                // 転落
+                gameState.mode = 'normal';
+                addLog('📉 ラッシュ転落...', 'log-normal');
+                
+                // 転落時もオートスピン停止
+                stopAutoSpinOnHit();
+            }
+            // 転落しない場合は何もせずラッシュ継続
+        }
+    }
+
+    function handleExtraSpin() {
+        const rand = random();
+        
+        if (rand < PROBABILITIES.extraContinue) {
+            // ラッシュに戻る
+            gameState.mode = 'rush';
+            gameState.rushMode = selectRushModeAfterHit(); // 通常振り分け
+            addLog('🔄 ラッシュに復帰！', 'log-rush');
+        } else {
+            // 3000発上乗せ + エクストラ継続
+            gameState.totalBalls += 3000;
+            gameState.extraStack++;
+            addLog('🎰 3000発上乗せ！エクストラ継続！', 'log-extra');
+            
+            // 上乗せ時もオートスピン停止
+            stopAutoSpinOnHit();
+        }
+    }
+
+    // オートスピン停止機能
+    function stopAutoSpinOnHit() {
+        if (gameState.autoSpinInterval) {
+            document.getElementById('autospin').checked = false;
+            stopAutoSpin();
+            addLog('⏸️ 大当たり/チャージによりオートスピン停止', 'log-normal');
+        }
+    }
+
+    function selectRushMode() {
+        // ラッシュ突入時は青モード確定（転落からの復帰含む）
+        return 'blue';
+    }
+    
+    function selectRushModeAfterHit() {
+        // ラッシュ中の当たり後の継続時は通常振り分け
+        const rand = random();
+        if (rand < RUSH_MODE_DISTRIBUTION.white) return 'white';
+        if (rand < RUSH_MODE_DISTRIBUTION.white + RUSH_MODE_DISTRIBUTION.green) return 'green';
+        return 'blue';
+    }
+
+    function spin10() {
+        for (let i = 0; i < 10; i++) {
+            spinOnce();
+        }
+    }
+
+    function spin100() {
+        for (let i = 0; i < 100; i++) {
+            spinOnce();
+        }
+    }
+
+    function updateDisplay() {
+        document.getElementById('totalSpins').textContent = gameState.totalSpins;
+        document.getElementById('totalBalls').textContent = gameState.totalBalls + '発';
+        document.getElementById('hitCount').textContent = gameState.hitCount + '回';
+        document.getElementById('rushCount').textContent = gameState.rushCount + '回';
+        
+        // 当たり履歴表示（最新5件）
+        const historyDisplay = document.getElementById('hitHistoryDisplay');
+        if (gameState.hitHistory.length === 0) {
+            historyDisplay.innerHTML = '履歴なし';
+        } else {
+            const recentHistory = gameState.hitHistory.slice(-5).reverse();
+            historyDisplay.innerHTML = recentHistory.map((hit, index) => {
+                const num = gameState.hitHistory.length - index;
+                return `<div style="margin: 5px 0; padding: 5px; background: rgba(0,255,136,0.1); border-radius: 5px;">
+                    ${num}. ${hit.type} - ${hit.spins}回転
+                </div>`;
+            }).join('');
+        }
+        
+        // 投入玉数計算（通常時15玉、ラッシュ・エクストラ時1玉）
+        // 履歴の合計回転数 + 現在の回転数で計算
+        const totalAllSpins = gameState.hitHistory.reduce((sum, hit) => sum + hit.spins, 0) + gameState.totalSpins;
+        let totalInvestment = 0;
+        if (gameState.mode === 'rush' || gameState.mode === 'extra') {
+            totalInvestment = totalAllSpins * 1; // ラッシュ中は1玉
+        } else {
+            totalInvestment = totalAllSpins * 15; // 通常時は15玉
+        }
+        
+        const balance = gameState.totalBalls - totalInvestment;
+        document.getElementById('balance').textContent = balance + '発';
+        
+        const payoutRate = totalInvestment > 0 ? 
+            ((gameState.totalBalls / totalInvestment) * 100).toFixed(1) : 0;
+        document.getElementById('payoutRate').textContent = payoutRate + '%';
+
+        // モード表示更新
+        const modeElement = document.getElementById('currentMode');
+        const rushDisplay = document.getElementById('rushModeDisplay');
+        
+        switch(gameState.mode) {
+            case 'normal':
+                modeElement.textContent = '通常モード';
+                modeElement.className = 'mode-indicator mode-normal';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'charge':
+                modeElement.textContent = '炎炎チャージ';
+                modeElement.className = 'mode-indicator mode-charge';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'breath':
+                modeElement.textContent = '命の呼吸チャレンジ';
+                modeElement.className = 'mode-indicator mode-breath';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'rush':
+                modeElement.textContent = `ラッシュモード (${gameState.rushMode})`;
+                modeElement.className = 'mode-indicator mode-rush';
+                rushDisplay.style.display = 'grid';
+                break;
+            case 'extra':
+                modeElement.textContent = 'エクストラモード';
+                modeElement.className = 'mode-indicator mode-extra';
+                rushDisplay.style.display = 'none';
+                break;
+        }
+    } gameState.totalBalls + '発';
+        document.getElementById('hitCount').textContent = gameState.hitCount + '回';
+        document.getElementById('rushCount').textContent = gameState.rushCount + '回';
+        
+        // 投入玉数計算（通常時15玉、ラッシュ・エクストラ時1玉）
+        let totalInvestment = 0;
+        // 簡易計算として、現在のモードで全回転計算（実際はモード別に計算すべきだが複雑になるため）
+        if (gameState.mode === 'rush' || gameState.mode === 'extra') {
+            totalInvestment = gameState.totalSpins * 1; // ラッシュ中は1玉
+        } else {
+            totalInvestment = gameState.totalSpins * 15; // 通常時は15玉
+        }
+        
+        const balance = gameState.totalBalls - totalInvestment;
+        document.getElementById('balance').textContent = balance + '発';
+        
+        const payoutRate = totalInvestment > 0 ? 
+            ((gameState.totalBalls / totalInvestment) * 100).toFixed(1) : 0;
+        document.getElementById('payoutRate').textContent = payoutRate + '%';
+
+        // モード表示更新
+        const modeElement = document.getElementById('currentMode');
+        const rushDisplay = document.getElementById('rushModeDisplay');
+        
+        switch(gameState.mode) {
+            case 'normal':
+                modeElement.textContent = '通常モード';
+                modeElement.className = 'mode-indicator mode-normal';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'charge':
+                modeElement.textContent = '炎炎チャージ';
+                modeElement.className = 'mode-indicator mode-charge';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'breath':
+                modeElement.textContent = '命の呼吸チャレンジ';
+                modeElement.className = 'mode-indicator mode-breath';
+                rushDisplay.style.display = 'none';
+                break;
+            case 'rush':
+                modeElement.textContent = `ラッシュモード (${gameState.rushMode})`;
+                modeElement.className = 'mode-indicator mode-rush';
+                rushDisplay.style.display = 'grid';
+                break;
+            case 'extra':
+                modeElement.textContent = 'エクストラモード';
+                modeElement.className = 'mode-indicator mode-extra';
+                rushDisplay.style.display = 'none';
+                break;
+        }
+    }
+
+    function addLog(message, className = 'log-normal') {
+        const log = document.getElementById('gameLog');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${className}`;
+        entry.textContent = `[${gameState.totalSpins}G] ${message}`;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+        
+        // ログが多すぎる場合は古いものを削除
+        if (log.children.length > 100) {
+            log.removeChild(log.firstChild);
+        }
+    }
+
+    function resetGame() {
+        gameState = {
+            mode: 'normal',
+            totalSpins: 0,
+            currentSpins: 0,
+            totalBalls: 0,
+            hitCount: 0,
+            rushCount: 0,
+            rushMode: 'white',
+            extraStack: 0,
+            isAutoSpin: false,
+            autoSpinInterval: null,
+            hitHistory: []
+        };
+        
+        document.getElementById('gameLog').innerHTML = '';
+        updateDisplay();
+        addLog('🎮 ゲームをリセットしました', 'log-normal');
+    }
+
+    // オートスピン機能
+    document.getElementById('autospin').addEventListener('change', function() {
+        if (this.checked) {
+            startAutoSpin();
+        } else {
+            stopAutoSpin();
+        }
+    });
+
+    function startAutoSpin() {
+        if (gameState.autoSpinInterval) return;
+        
+        const speed = parseInt(document.getElementById('autoSpeed').value);
+        gameState.autoSpinInterval = setInterval(() => {
+            spinOnce();
+        }, speed);
+        
+        // ボタンを無効化
+        document.getElementById('spinButton').disabled = true;
+        document.getElementById('spin10Button').disabled = true;
+        document.getElementById('spin100Button').disabled = true;
+    }
+
+    function stopAutoSpin() {
+        if (gameState.autoSpinInterval) {
+            clearInterval(gameState.autoSpinInterval);
+            gameState.autoSpinInterval = null;
+        }
+        
+        // ボタンを有効化
+        document.getElementById('spinButton').disabled = false;
+        document.getElementById('spin10Button').disabled = false;
+        document.getElementById('spin100Button').disabled = false;
+    }
+
+    // 初期化
+    updateDisplay();
+    addLog('🎮 炎炎ノ消防隊パチンコシミュレーター開始！', 'log-normal');
+</script>
+```
+
+</body>
+</html>
